@@ -14,7 +14,15 @@ def index():
 @app.route('/home/<name>')
 def home(name):
     session["username"] = name #in this part, i am setting the value of the session["username"]
-    return render_template("home.html", name=name)
+    my_subjects = ["LIS 51", "LIS 160", "LIS 161"]
+    books = [{"title":"Harry Potter","author":"J.K. Rowling"}
+        ,{"title":"Book1","author":"author2"}
+        ,{"title":"Book3","author":"author3"}]
+    person = {"name":"Paul","email":"pvperez1@gmail.com"}
+
+    ### This is where I extract from DB
+
+    return render_template("home.html", home_name = name, user_flag = 2, home_subjects = my_subjects, books = books, person=person)
 
 #this page is the form
 @app.route('/form', methods=["GET","POST"])
@@ -25,6 +33,11 @@ def form():
         # in this part i am extracting the values from the form
         var_name = request.form["username"]
         var_location = request.form["location"]
+
+        ####
+        ####This is where i save the variable to database
+        ####
+
         if var_name == '':
             return redirect(url_for('unsuccessful'))
         else:
@@ -41,7 +54,7 @@ def about():
         return redirect(url_for("form"))
     else:
         name = session["username"]
-        return render_template("about.html")
+        return render_template("about.html", about_name = name)
 
 @app.route('/logout')
 def logout():
