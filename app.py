@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect, url_for, session, render_template
+import sqlite3
 app = Flask(__name__)
 
 # Configuration for app starts here
@@ -36,7 +37,13 @@ def form():
 
         ####
         ####This is where i save the variable to database
+        conn = sqlite3.connect('flask.db')
+        cur = conn.cursor()
+        cur.execute('INSERT INTO users (name,location) VALUES (?,?)', (var_name,var_location))
+        conn.commit()
+        cur.close()
         ####
+
 
         if var_name == '':
             return redirect(url_for('unsuccessful'))
@@ -61,6 +68,18 @@ def logout():
     session.pop("username")
     return "<h1>Successfully logged out!</h1>"
 
+
+@app.route('/showall')
+def showall():
+    # Read all contents of user table
+    conn = sqlite3.connect('flask.db')
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM users')
+    results = cur.fetchall()
+    cur.close()
+    #end of db transaction
+
+    return render_template('showall.html', results=results)
 
 
 if __name__ == "__main__":
