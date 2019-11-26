@@ -19,7 +19,7 @@
           <td>{{ result[1] }}</td>
           <td>{{ result[2] }}</td>
           <td>
-            <form>
+            <form method="get" action="{{ url_for('edit') }}">
               <button type="submit" value="{{ result[0] }}" name="edit" class="btn btn-warning">Edit</button>
             </form>
           </td>

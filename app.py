@@ -7,6 +7,23 @@ app.config["DEBUG"] = True
 app.config["SECRET_KEY"] = "thisisasecretkey!"
 # Configuration ends here
 
+#DB helper functions
+
+def connect_db():
+    conn = sqlite3.connect('flask.db')
+    return conn
+
+def read_all_users():
+    # Read all contents of user table
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM users')
+    results = cur.fetchall()
+    cur.close()
+    #end of db transaction
+
+    return results
+
 @app.route('/')
 def index():
     return "<h1>Hello World!</h1>"
@@ -37,7 +54,7 @@ def form():
 
         ####
         ####This is where i save the variable to database
-        conn = sqlite3.connect('flask.db')
+        conn = connect_db()
         cur = conn.cursor()
         cur.execute('INSERT INTO users (name,location) VALUES (?,?)', (var_name,var_location))
         conn.commit()
@@ -72,14 +89,49 @@ def logout():
 @app.route('/showall')
 def showall():
     # Read all contents of user table
-    conn = sqlite3.connect('flask.db')
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM users')
-    results = cur.fetchall()
-    cur.close()
+    results = read_all_users()
     #end of db transaction
 
     return render_template('showall.html', results=results)
+
+@app.route('/edit',methods=['post','get'])
+def edit():
+    if request.method == 'GET':
+        edit_id = request.args.get('edit')
+        # Retrieve that record
+        conn = connect_db()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM users WHERE id = ?',(edit_id))
+        result = cur.fetchone()
+        cur.close()
+        #done
+
+        return render_template('edit.html',result=result)
+    elif request.method == 'POST':
+        new_name = request.form['name']
+        new_location = request.form['location']
+        edit_id = request.form['id']
+
+        if request.form['edit'] == "update":
+            #Update the record
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('UPDATE users SET name = ?, location = ? WHERE id = ?',(new_name,new_location,edit_id))
+            conn.commit()
+            cur.close()
+            #end of DB transaction
+        elif request.form['edit'] == "delete":
+            #Delete the record
+            conn = connect_db()
+            cur = conn.cursor()
+            cur.execute('DELETE FROM users WHERE id = ?',(edit_id))
+            conn.commit()
+            cur.close()
+            #end of DB transaction
+
+
+        results = read_all_users()
+        return render_template('showall.html',results=results)
 
 
 if __name__ == "__main__":
